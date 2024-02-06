@@ -1,0 +1,45 @@
+services:
+ timid:
+    image: fuglesteg/timid
+    restart: always
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    ports:
+      - '27015:27015/udp' # This is the query port, supplies packets when the server browser is used. # Required if you want your server to show up in the commu                                                                                                                                                                                                                                                                                                                                                           nity servers tab
+      - '8211:8211/udp' # This port handles the actual game traffic
+      - '25575:25575' # This port handles RCON.
+    environment:
+      TIMID_PORT: 8211
+      TIMID_TARGET_ADDRESS: palworld:8211
+      TIMID_CONTAINER_GROUP: palworld
+ palworld:
+      image: thijsvanloef/palworld-server-docker:latest
+      restart: unless-stopped
+      container_name: palworld-server
+      stop_grace_period: 30s # Set to however long you are willing to wait for the container to gracefully stop
+      environment:
+         - PUID=1000
+         - PGID=1000
+         - PORT=8211 # Optional but recommended
+         - PLAYERS=16 # Optional but recommended
+         - SERVER_PASSWORD=L3mon # Optional but recommended
+         - MULTITHREADING=true
+         - RCON_ENABLED=true
+         - RCON_PORT=25575
+         - TZ=UTC
+         - ADMIN_PASSWORD=superweak #changethis
+         - COMMUNITY=true  # Enable this if you want your server to show up in the community servers tab, USE WITH SERVER_PASSWORD!
+         - SERVER_NAME=Palworld #Required
+         - SERVER_DESCRIPTION= #Optional
+         - UPDATE_ON_BOOT=true # can be set to true or false
+         - BACKUP_CRON_EXPRESSSION=59 * * * *
+         - BACKUP_ENABLED=true
+         - DELETE_OLD_BACKUPS=true
+         - OLD_BACKUP_DAYS=30
+         - EXP_RATE=3.000000
+      volumes:
+         - ./palworld:/palworld/
+      labels:
+         - timid.group.palworld
+      depends_on:
+         - timid
